@@ -1,1 +1,1 @@
-# MarkovGenerator
+# markovGenerator
