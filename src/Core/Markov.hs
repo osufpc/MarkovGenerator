@@ -7,6 +7,9 @@ import qualified Data.Text as T
 import Control.Monad.Random
 import System.Random
 
+-- Code from:  https://www.kovach.me/posts/2014-08-04-markov-chains.html
+-- by Benjamin Kovach
+
 -------------------------------- Intermediate Rep ------------------------------
 type Weight = Rational
 type Edge a  = (a, Weight)
