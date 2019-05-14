@@ -1,11 +1,14 @@
-module Core.Markov where
+module Source where
 
+---- imports for the markov chain
 import Data.List (foldl')
 import Data.Hashable
 import qualified Data.HashMap.Lazy as M
 import qualified Data.Text as T
+import qualified Data.Text.IO as TIO
 import Control.Monad.Random
 import System.Random
+
 
 -- Code from:  https://www.kovach.me/posts/2014-08-04-markov-chains.html
 -- by Benjamin Kovach
@@ -14,7 +17,7 @@ import System.Random
 type Weight = Rational
 type Edge a  = (a, Weight)
 
--- | We use an intermediate representation that maps a node a, to a edge with a
+-- | We use an intermediate representation that maps a node a, to an edge with a
 -- weight and a Maybe because Rands cannot be empty
 type MarkovI a = M.HashMap a (Maybe [Edge a])
 
@@ -87,9 +90,14 @@ insertMkvPairsInto mkv ps = insertEnd lst $
   foldl' (flip (uncurry (insertToMarkov 1))) mkv ps
   where lst = snd $ last ps
 
+-- | We take an empty intermediate markov representation (an empty map) and fold
+-- out sentences into it, then we convert the map into the intermediate markov
+-- representation
 fromSentences :: RandomGen g => [T.Text] -> Markov g T.Text
 fromSentences = fromMarkovI . foldl' insertSentence M.empty
 
+-- | n is the length of the sentence in char, sentences is the seed to build up
+-- the chain
 runFromSentences :: Integer -> [T.Text] -> IO (Either Err T.Text)
 runFromSentences n sentences = do
   g <- newStdGen
@@ -107,3 +115,26 @@ test = [ "I am a monster."
        , "Go eat a big hamburger!"
        , "Markov chains are fun to use!"
        ]
+
+--------------------------- Reading new text -----------------------------------
+
+-- | we get a filename, read it in as a Text, and then split on it with a helper
+-- function. This is where you would typically call a regex
+getText :: String -> IO [T.Text]
+getText = fmap (T.split splitter) . TIO.readFile
+  -- non-eta reduced
+  -- do text <- TIO.readFile filename
+  --    return $ T.split splitter text
+  where splitter '.' = True
+        splitter '!' = True
+        splitter '?' = True
+        splitter ';' = True
+        splitter '-' = True
+        splitter '\n' = True
+        splitter _   = False
+
+alice :: IO [T.Text]
+alice = getText "alice.txt"
+
+poems :: IO [T.Text]
+poems = getText "poems.txt"
