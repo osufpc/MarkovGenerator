@@ -100,13 +100,15 @@ fromSentences = fromMarkovI . foldl' insertSentence M.empty
 -- | n is the length of the sentence in char, sentences is the seed to build up
 -- the chain
 runFromSentences :: Integer -> [T.Text] -> IO (Either Err T.Text)
-runFromSentences _ [] = return $ Left "Empty sentences"
+runFromSentences _ [] = return $ Left "Empty sentences" -- added by FPC
 runFromSentences n sentences = do
   g <- newStdGen
   let hds = map (head . T.words) sentences
   seed <- uniform hds
   return $ T.unwords <$> runMarkov n (fromSentences sentences) g seed
 
+-- | added by FPC, we just run the monadic action of creating a sentence of
+-- length n, n times
 makeParagraph :: Integer -> [T.Text] -> IO [T.Text]
 makeParagraph n sentences = rights <$> replicateM (fromIntegral n) action
   where
