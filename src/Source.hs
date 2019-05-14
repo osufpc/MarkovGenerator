@@ -8,6 +8,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import Control.Monad.Random
 import System.Random
+import Data.Either (rights)
 
 
 -- Code from:  https://www.kovach.me/posts/2014-08-04-markov-chains.html
@@ -99,11 +100,18 @@ fromSentences = fromMarkovI . foldl' insertSentence M.empty
 -- | n is the length of the sentence in char, sentences is the seed to build up
 -- the chain
 runFromSentences :: Integer -> [T.Text] -> IO (Either Err T.Text)
+runFromSentences _ [] = return $ Left "Empty sentences"
 runFromSentences n sentences = do
   g <- newStdGen
   let hds = map (head . T.words) sentences
   seed <- uniform hds
   return $ T.unwords <$> runMarkov n (fromSentences sentences) g seed
+
+makeParagraph :: Integer -> [T.Text] -> IO [T.Text]
+makeParagraph n sentences = rights <$> replicateM (fromIntegral n) action
+  where
+    action :: IO (Either Err T.Text)
+    action = runFromSentences n sentences
 
 test :: [T.Text]
 test = [ "I am a monster."
